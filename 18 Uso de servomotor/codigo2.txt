@@ -1,0 +1,24 @@
+#include <Servo.h>
+Servo servo1;
+int angulo = 90;
+int salto = 3;
+int ejeX = A1;
+int ejeY = A2;
+int boton = 4;
+
+void setup() {
+  servo1.attach(6);
+  pinMode(boton,INPUT_PULLUP);
+}
+
+void loop() {
+  int p = analogRead(A1);
+  if(p<400){
+    angulo = angulo - salto;
+    }
+   else if(p>600){
+    angulo = angulo + salto;
+    }
+    servo1.write(angulo);
+    delay(50);
+}

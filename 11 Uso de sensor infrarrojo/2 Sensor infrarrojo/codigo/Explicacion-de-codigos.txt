@@ -1,0 +1,84 @@
+﻿*******Esta es la exlicacion del codigo arduino*******
+//Declaramos los pines digitales IN1,IN2,IN3,IN4
+//Estos pines digitales nos serviran para controlar los motores
+//Primer motor
+int IN1 = 3;//Pin digital 3 de arduino
+int IN2 = 4;//Pin digital 4 de arduino
+
+//Segundo motor
+int IN3 = 5;//Pin digital 5 de arduino
+int IN4 = 6;//Pin digital 6 de arduino
+
+void setup() {//Aqui se hacen las configuraciones
+Serial.begin(9600); //Velocidad de comunicación en baudios
+
+pinMode(13,OUTPUT);//Declaramos pin digital 13 como salida
+digitalWrite(13,LOW);//Pin 13 para el led apagado
+//Aqui reconocemos los pines del motor
+  pinMode (IN1, OUTPUT);    // Input1 conectada al pin 3 
+  pinMode (IN2, OUTPUT);    // Input2 conectada al pin 4
+  pinMode (IN3, OUTPUT);    // Input3 conectada al pin 5
+  pinMode (IN4, OUTPUT);    // Input4 conectada al pin 6
+}
+
+void loop() {//loop es el bucle, se ejecuta una y otra vez
+if(Serial.available()) //Si comunicacion serial esta disponible
+{
+digitalWrite(13,HIGH);//prende el led
+  Serial.println("Estoy conectado");//Mensaje por serial:Estoy conectado
+    digitalWrite(13,HIGH);//prende el led
+    
+    int c=Serial.read();//leemos lo que nos manda el raspberry por serial 
+    Serial.println(c);//mostramos por monitor serial lo que hemos recibido del raspberry
+    if(c=='e'){//si recibimos 'e' entonces el carro avanza
+      //ADELANTE
+      digitalWrite (IN1, HIGH);
+      digitalWrite (IN2, LOW);
+      digitalWrite (IN3, HIGH);
+      digitalWrite (IN4, LOW);
+
+      }else if(c=='a'){//si recibimos 'a' entonces el carro se detendra
+      //STOP
+      digitalWrite (IN1, LOW);
+      digitalWrite (IN2, LOW);
+      digitalWrite (IN3, LOW);
+      digitalWrite (IN4, LOW);
+    }
+    //delay(50);
+ }else{//si la comunicacion serial no esta disponible el led se apagara
+  digitalWrite(13,LOW);//el led se apagara
+ }
+ delay(50);//un retardo de 50 milisegundos
+}
+
+
+*******Esta es la explicacion del codigo python*******
+#Agregamos las librerias necesarias
+from imutils.video import WebcamVideoStream
+import imutils #libreria para reducir los grames/segundo
+import cv2 #libreria de opencv
+import serial #libreria para comunicacion serial
+
+ser=serial.Serial('/dev/ttyACM0',9600) #leemos el puerto serial a 9600 baudios
+vs = WebcamVideoStream(src=0).start()#indice que corresponde a la camara web
+car_cascade = cv2.CascadeClassifier(r'haarcascade_frontalface_alt.xml')#archivo .xml que contiene el patron de reconocimiento
+number_of_frames_to_load = 3000 #numero de frames que quiero que se ejecute
+for frame_id in xrange(number_of_frames_to_load): # cada frame se ejecutara dentro de un for
+   frame = vs.read() #leemos lo que captamos por la camara web
+   frame = imutils.resize(frame, width=400) #dimensiones del cuadrito donde aparece lo que graba la camara
+   cars = car_cascade.detectMultiScale(frame, 1.05, 3) #configuraciones para la deteccion de imagen
+   for (x,y,w,h) in cars:
+     cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)#dibujamos un rectangulo para encerrar lo que detecte
+   print 'Proceso %d : caras detectadas : [%s]' % (frame_id, len(cars))#nos muestra en pantalla el proceso y el numero de caras detectadas
+   cv2.imshow("Frame", frame)#hace que aparezca el cuadro con lo que ve la camara web
+   if len(cars)>0: #si vemos 1 o más caras entonces
+        letra_enviada='a'
+        ser.write(letra_enviada)#enviamos la letra 'a'
+   else: #si no detecta cara entonces
+        letra_enviada='e'
+        ser.write(letra_enviada) #enviaremos la letra 'e'
+
+cv2.destroyAllWindows()#cierra todas las ventanas creadas
+vs.stop()#paramos la camara web
+*******
+
